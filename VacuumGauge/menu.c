@@ -1,25 +1,25 @@
 #include "menu.h"
 #include "LCD.h"
 
-#define UPDATE_TIME 20000 // если в течение UPDATE_TIME мс не будет нажатий, возвращаемся в главное меню
+#define UPDATE_TIME 20000 // РµСЃР»Рё РІ С‚РµС‡РµРЅРёРµ UPDATE_TIME РјСЃ РЅРµ Р±СѓРґРµС‚ РЅР°Р¶Р°С‚РёР№, РІРѕР·РІСЂР°С‰Р°РµРјСЃСЏ РІ РіР»Р°РІРЅРѕРµ РјРµРЅСЋ
 
 struct menu{
 	int size;
-	char top_text[16]; //текст меню
-	char bottom_text[16]; //текст меню
+	char top_text[16]; //С‚РµРєСЃС‚ РјРµРЅСЋ
+	char bottom_text[16]; //С‚РµРєСЃС‚ РјРµРЅСЋ
 	menu_s* subMenus;
 	void (*action)(button);
-	bool isChangeable; //флажок для изменяемых подпунктов
+	bool isChangeable; //С„Р»Р°Р¶РѕРє РґР»СЏ РёР·РјРµРЅСЏРµРјС‹С… РїРѕРґРїСѓРЅРєС‚РѕРІ
 };
 
 static menu_s *menus = NULL;
-static int menusCount = 0; //счетчик менюшек
+static int menusCount = 0; //СЃС‡РµС‚С‡РёРє РјРµРЅСЋС€РµРє
 static uint16_t timer = 0;
-static int currentMenu = 0; //позиция текущего меню
-static int currentSubMenu = -1; //позиция текущего подменю 1 уровня
-static int currentSub2Menu = -1; //позиция текущего подменю 2 уровня
+static int currentMenu = 0; //РїРѕР·РёС†РёСЏ С‚РµРєСѓС‰РµРіРѕ РјРµРЅСЋ
+static int currentSubMenu = -1; //РїРѕР·РёС†РёСЏ С‚РµРєСѓС‰РµРіРѕ РїРѕРґРјРµРЅСЋ 1 СѓСЂРѕРІРЅСЏ
+static int currentSub2Menu = -1; //РїРѕР·РёС†РёСЏ С‚РµРєСѓС‰РµРіРѕ РїРѕРґРјРµРЅСЋ 2 СѓСЂРѕРІРЅСЏ
 
-// структура для очереди
+// СЃС‚СЂСѓРєС‚СѓСЂР° РґР»СЏ РѕС‡РµСЂРµРґРё
 struct queue_s{
 	int current_pos;
 	int size;
@@ -35,7 +35,7 @@ void createMenusItem(const char *top_text, const char *bottom_text)
 {
 	menus = (menu_s*)realloc(menus, (++menusCount)*sizeof(menu_s));
 	if (menusCount > 1){
-		char tmp_top[16] = {"»"};
+		char tmp_top[16] = {"В»"};
 		char tmp_bottom[16] = {" "};
 		strcat(tmp_top, top_text);
 		strcat(tmp_bottom, bottom_text);
@@ -274,7 +274,7 @@ void menuButtton(void)
 	}
 	else if (currentSubMenu > -1){
 		if (menus[currentMenu].subMenus[currentSubMenu].isChangeable && (menus[currentMenu].subMenus[currentSubMenu].action != NULL)){
-			menus[currentMenu].subMenus[currentSubMenu].action(Reset); //сбросим все, что натворили
+			menus[currentMenu].subMenus[currentSubMenu].action(Reset); //СЃР±СЂРѕСЃРёРј РІСЃРµ, С‡С‚Рѕ РЅР°С‚РІРѕСЂРёР»Рё
 		}
 		currentSubMenu = -1;
 		timer = 0;
@@ -338,7 +338,7 @@ void setMenuText(int id, char *top_text, char *bottom_text)
 	if (id < menusCount){
 		if (top_text != NULL){
 			if (id > 0){
-				char tmp_top[16] = {"»"};
+				char tmp_top[16] = {"В»"};
 				strcat(tmp_top, top_text);
 				memcpy(menus[menusCount-1].top_text, tmp_top, 16);
 			}
@@ -382,7 +382,7 @@ void setSub2MenuText(int id, int subId, int sub2Id, char *top_text, char *bottom
 
 void updateMenu(uint16_t step)
 {
-	//обработка морганий
+	//РѕР±СЂР°Р±РѕС‚РєР° РјРѕСЂРіР°РЅРёР№
 	static bool blink = true;
 	static char borders[3] = {' ', '[', ']'};
 	static int blink_timer = 0;
@@ -397,7 +397,7 @@ void updateMenu(uint16_t step)
 		
 	timer += timer < UPDATE_TIME? step: 0;
 
-	//работа с очередью
+	//СЂР°Р±РѕС‚Р° СЃ РѕС‡РµСЂРµРґСЊСЋ
 	if (queue.size > 0){
 		queue.timer += step;
 		if (((queue.timer >= queue.fix_time[queue.current_pos]) || ((queue.fix_time[queue.current_pos] > 30000) && ((queue.size - queue.current_pos) >= 2))) && !queueIsFilling){
@@ -442,8 +442,8 @@ void updateMenu(uint16_t step)
 	}
 }
 
-/* Функция ставит в очередь вывод на дисплей на fix_time_ms миллисекунд
-*  Меню будет заблокировано пока очередь не опустошится
+/* Р¤СѓРЅРєС†РёСЏ СЃС‚Р°РІРёС‚ РІ РѕС‡РµСЂРµРґСЊ РІС‹РІРѕРґ РЅР° РґРёСЃРїР»РµР№ РЅР° fix_time_ms РјРёР»Р»РёСЃРµРєСѓРЅРґ
+*  РњРµРЅСЋ Р±СѓРґРµС‚ Р·Р°Р±Р»РѕРєРёСЂРѕРІР°РЅРѕ РїРѕРєР° РѕС‡РµСЂРµРґСЊ РЅРµ РѕРїСѓСЃС‚РѕС€РёС‚СЃСЏ
 */
 void displayQueue(const char *top_text, const char *bottom_text, uint16_t fix_time_ms)
 {

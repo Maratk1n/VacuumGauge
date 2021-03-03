@@ -1,5 +1,5 @@
 
-%% Выгружаем данные из файла
+%% Р’С‹РіСЂСѓР¶Р°РµРј РґР°РЅРЅС‹Рµ РёР· С„Р°Р№Р»Р°
 file_name = 'log2.mat';
 load(file_name, 'data_x')
 % data_x = dlmread(file_name,';', 0, 0);

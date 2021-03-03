@@ -14,7 +14,7 @@ struct sens{
 static sensor_s *sensors = NULL;
 static int sensors_count = 0;
 static float unit_coeff[3] = {1.0f, 0.01f, 0.007501f};
-static int filter_coeff = 3; //коэффициент фильтра скользящего среднего
+static int filter_coeff = 3; //РєРѕСЌС„С„РёС†РёРµРЅС‚ С„РёР»СЊС‚СЂР° СЃРєРѕР»СЊР·СЏС‰РµРіРѕ СЃСЂРµРґРЅРµРіРѕ
 
 void addSensors(int num)
 {

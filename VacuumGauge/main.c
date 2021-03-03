@@ -9,7 +9,7 @@
 #define Sound_off()					PORTE&=~_BV(3)
 #define led_Pa()					PORTB|=_BV(0); PORTE&=~_BV(6); PORTE&=~_BV(7)
 #define led_mbar()					PORTE|=_BV(7); PORTE&=~_BV(6); PORTB&=~_BV(0)
-#define led_mm_rt_st()				PORTE|=_BV(6); PORTE&=~_BV(7); PORTB&=~_BV(0) //Торр
+#define led_mm_rt_st()				PORTE|=_BV(6); PORTE&=~_BV(7); PORTB&=~_BV(0) //РўРѕСЂСЂ
 
 #define ADC_mux_ch(ch_id)			PORTD|=_BV(6+ch_id); PORTD&=~_BV(7-ch_id)
 
@@ -30,21 +30,21 @@
 #include "sensors.h"
 #include "curves.h"
 
-//данные в eeprom
-uint8_t EEMEM mem_rs_address = 1; //адрес сети RS485
+//РґР°РЅРЅС‹Рµ РІ eeprom
+uint8_t EEMEM mem_rs_address = 1; //Р°РґСЂРµСЃ СЃРµС‚Рё RS485
 pressure_unit EEMEM mem_currentUnit = Pa;
 sensor_type EEMEM mem_currentType[2] = {analogSensor, analogSensor};
 uint16_t EEMEM mem_bridge_offset[2] = {0, 0};
 
-uint8_t rs_address = 1; //адрес сети RS485
+uint8_t rs_address = 1; //Р°РґСЂРµСЃ СЃРµС‚Рё RS485
 pressure_unit currentUnit = Pa;
 sensor_type currentType[2] = {analogSensor, analogSensor};
 uint16_t bridge_offset[2] = {0, 0};
 	
-int boost_count = 1; //множитель для ускорения подсчета чисел при нажатии на кнопку
+int boost_count = 1; //РјРЅРѕР¶РёС‚РµР»СЊ РґР»СЏ СѓСЃРєРѕСЂРµРЅРёСЏ РїРѕРґСЃС‡РµС‚Р° С‡РёСЃРµР» РїСЂРё РЅР°Р¶Р°С‚РёРё РЅР° РєРЅРѕРїРєСѓ
 volatile float adc_data[2] = {0, 0};
 volatile bool isCalibration = false;
-volatile uint8_t current_ch = 0; //текущий канал
+volatile uint8_t current_ch = 0; //С‚РµРєСѓС‰РёР№ РєР°РЅР°Р»
 
 
 void unitLedOn(pressure_unit unit){
@@ -84,24 +84,24 @@ void Global_Init(void){
 	
 	ADC_mux_ch(current_ch);
 	
-	//-----------Настройка 8-битного таймера для обновления меню каждые UPDATE_STEP мс-----------//
-	TCCR1B |= (1<<WGM12); //режим CTC
-	TIMSK |= (1<<OCIE1A); //разрешаем прерывание по совпадению с OCR1A
-	TCCR1B |= (1<<CS12) | (1<<CS10); //предделитель 1024
-	OCR1A = (uint64_t)F_CPU/(1024*(1/(0.001*UPDATE_STEP))) - 1;  //кол-во тактов для сравнения
+	//-----------РќР°СЃС‚СЂРѕР№РєР° 8-Р±РёС‚РЅРѕРіРѕ С‚Р°Р№РјРµСЂР° РґР»СЏ РѕР±РЅРѕРІР»РµРЅРёСЏ РјРµРЅСЋ РєР°Р¶РґС‹Рµ UPDATE_STEP РјСЃ-----------//
+	TCCR1B |= (1<<WGM12); //СЂРµР¶РёРј CTC
+	TIMSK |= (1<<OCIE1A); //СЂР°Р·СЂРµС€Р°РµРј РїСЂРµСЂС‹РІР°РЅРёРµ РїРѕ СЃРѕРІРїР°РґРµРЅРёСЋ СЃ OCR1A
+	TCCR1B |= (1<<CS12) | (1<<CS10); //РїСЂРµРґРґРµР»РёС‚РµР»СЊ 1024
+	OCR1A = (uint64_t)F_CPU/(1024*(1/(0.001*UPDATE_STEP))) - 1;  //РєРѕР»-РІРѕ С‚Р°РєС‚РѕРІ РґР»СЏ СЃСЂР°РІРЅРµРЅРёСЏ
 	
 	//-----------------------USART init------------------------------------------------
 	// USART0
-	UBRR0L = (((F_CPU / (9600 * 8UL))) - 1);			//формула для удвоенной скорости 9600 bps @ 16 MHz
+	UBRR0L = (((F_CPU / (9600 * 8UL))) - 1);			//С„РѕСЂРјСѓР»Р° РґР»СЏ СѓРґРІРѕРµРЅРЅРѕР№ СЃРєРѕСЂРѕСЃС‚Рё 9600 bps @ 16 MHz
 	//UBRR0L = 207;			
 	UCSR0A = _BV(U2X0);
 	UCSR0B = _BV(TXEN0)|_BV(RXEN0);
 	UCSR0C = _BV(UCSZ01)|_BV(UCSZ00);
 	// USART1
 	UBRR1L = 16; // 115200 bps @ 16 MHz
-	UCSR1A = _BV(U2X1); //удвоенная скорость передачи
-	UCSR1B = _BV(TXEN1)|_BV(RXEN1)|_BV(RXCIE1); //Разрешение на прием и на передачу через USART
-	UCSR1C = _BV(UCSZ11)|_BV(UCSZ10); //размер слова 8 разрядов
+	UCSR1A = _BV(U2X1); //СѓРґРІРѕРµРЅРЅР°СЏ СЃРєРѕСЂРѕСЃС‚СЊ РїРµСЂРµРґР°С‡Рё
+	UCSR1B = _BV(TXEN1)|_BV(RXEN1)|_BV(RXCIE1); //Р Р°Р·СЂРµС€РµРЅРёРµ РЅР° РїСЂРёРµРј Рё РЅР° РїРµСЂРµРґР°С‡Сѓ С‡РµСЂРµР· USART
+	UCSR1C = _BV(UCSZ11)|_BV(UCSZ10); //СЂР°Р·РјРµСЂ СЃР»РѕРІР° 8 СЂР°Р·СЂСЏРґРѕРІ
 	
 	//-----------------------------SPI init--------------------------------------------
 	// SPI, 8 MHz clock, mode 0
@@ -117,33 +117,33 @@ void USART0_Send(uint8_t const* data){
 	PORTE|= _BV(2); //WRITE_STATE
 	while(*data){
 		while(!(UCSR0A&_BV(UDRE0)));
-		UCSR0A |= _BV(TXC0); //зануляем бит успешной передачи байта (для rs485)
+		UCSR0A |= _BV(TXC0); //Р·Р°РЅСѓР»СЏРµРј Р±РёС‚ СѓСЃРїРµС€РЅРѕР№ РїРµСЂРµРґР°С‡Рё Р±Р°Р№С‚Р° (РґР»СЏ rs485)
 		UDR0 = *data++;
 	}
-	while(!(UCSR0A&_BV(TXC0))); //ждем очистки буфера отправки
+	while(!(UCSR0A&_BV(TXC0))); //Р¶РґРµРј РѕС‡РёСЃС‚РєРё Р±СѓС„РµСЂР° РѕС‚РїСЂР°РІРєРё
 	PORTE&=~_BV(2); //READ_STATE
 }
 void USART1_Send(uint8_t const* data){
 	PORTD|= _BV(1); //WRITE_STATE
 	while(*data){
 		while(!(UCSR1A&_BV(UDRE1)));
-		UCSR1A |= _BV(TXC1); //зануляем бит успешной передачи байта (для rs485)
+		UCSR1A |= _BV(TXC1); //Р·Р°РЅСѓР»СЏРµРј Р±РёС‚ СѓСЃРїРµС€РЅРѕР№ РїРµСЂРµРґР°С‡Рё Р±Р°Р№С‚Р° (РґР»СЏ rs485)
 		UDR1 = *data++;
 	}
-	while(!(UCSR1A&_BV(TXC1))); //ждем очистки буфера отправки
+	while(!(UCSR1A&_BV(TXC1))); //Р¶РґРµРј РѕС‡РёСЃС‚РєРё Р±СѓС„РµСЂР° РѕС‚РїСЂР°РІРєРё
 	PORTD&=~_BV(1); //READ_STATE
 }
 void USART1_Send_Byte(uint8_t const byte){
 	PORTD|= _BV(1); //WRITE_STATE
 	
 	while(!(UCSR1A&_BV(UDRE1)));
-	UCSR1A |= _BV(TXC1); //зануляем бит успешной передачи байта (для rs485)
+	UCSR1A |= _BV(TXC1); //Р·Р°РЅСѓР»СЏРµРј Р±РёС‚ СѓСЃРїРµС€РЅРѕР№ РїРµСЂРµРґР°С‡Рё Р±Р°Р№С‚Р° (РґР»СЏ rs485)
 	UDR1 = byte;
 	
-	while(!(UCSR1A&_BV(TXC1))); //ждем очистки буфера отправки
+	while(!(UCSR1A&_BV(TXC1))); //Р¶РґРµРј РѕС‡РёСЃС‚РєРё Р±СѓС„РµСЂР° РѕС‚РїСЂР°РІРєРё
 	PORTD&=~_BV(1); //READ_STATE
 }
-// ф-я отправки ответа
+// С„-СЏ РѕС‚РїСЂР°РІРєРё РѕС‚РІРµС‚Р°
 void sendResponse(uint8_t addr, uint8_t cmd, uint8_t *data, uint8_t length){
 	uint8_t tx_data[FRAME_MAX_LEN];
 	uint8_t checksum = 0;
@@ -180,7 +180,7 @@ void write2DAC(int CS_id, int ch_id, uint16_t value){
 	CS_HIGH(CS_id);
 }
 /*******************************************************************************
- * Чтение датчиков
+ * Р§С‚РµРЅРёРµ РґР°С‚С‡РёРєРѕРІ
  *******************************************************************************/
 float adc_read(int channel_id){
 	uint32_t tmp = 0;
@@ -207,7 +207,7 @@ float analog_read(int sensor_id){
 	}
 	else{
 		int pos = 0;
-		float pressure = 0; //Па
+		float pressure = 0; //РџР°
 		for (int i = 0; i < sizeof(ADC_scale)/sizeof(*ADC_scale); i++){
 			if (adc > ADC_scale[i]){
 				pos = i;
@@ -217,7 +217,7 @@ float analog_read(int sensor_id){
 			pressure = 100000.0;
 		}
 		else{
-			//считаем давление по подобию треугольников 
+			//СЃС‡РёС‚Р°РµРј РґР°РІР»РµРЅРёРµ РїРѕ РїРѕРґРѕР±РёСЋ С‚СЂРµСѓРіРѕР»СЊРЅРёРєРѕРІ 
 			pressure = pressure_scale[pos] + (adc - (float)ADC_scale[pos])*((pressure_scale[pos + 1] - pressure_scale[pos])/((float)ADC_scale[pos + 1] - (float)ADC_scale[pos]));
 			if (pressure > 100000.0){
 				pressure = 100000.0;
@@ -237,7 +237,7 @@ float thyracont_read(int sensor_id){
 	volatile char curr_symb = 0;
 	volatile int pos = 0;
 	while ((curr_symb != 13) && counter){
-		// ждем, пока байт не будет принят и не вернет полученные данные
+		// Р¶РґРµРј, РїРѕРєР° Р±Р°Р№С‚ РЅРµ Р±СѓРґРµС‚ РїСЂРёРЅСЏС‚ Рё РЅРµ РІРµСЂРЅРµС‚ РїРѕР»СѓС‡РµРЅРЅС‹Рµ РґР°РЅРЅС‹Рµ
 		while(!(UCSR0A & (1<<RXC0)) && counter){counter--;}
 		if (counter){
 			curr_symb = UDR0;
@@ -280,14 +280,14 @@ void setSensorType(int sensor_id, sensor_type type){
 	}
 }
 /*******************************************************************************
- * Вектор прерывания для чтения данных с ПК
+ * Р’РµРєС‚РѕСЂ РїСЂРµСЂС‹РІР°РЅРёСЏ РґР»СЏ С‡С‚РµРЅРёСЏ РґР°РЅРЅС‹С… СЃ РџРљ
  *******************************************************************************/
 ISR(USART1_RX_vect){
 	uint8_t byte = UDR1;
 	USART1_Send_Byte(byte);
 }
 /*******************************************************************************
- * Основной таймер для обновления
+ * РћСЃРЅРѕРІРЅРѕР№ С‚Р°Р№РјРµСЂ РґР»СЏ РѕР±РЅРѕРІР»РµРЅРёСЏ
  *******************************************************************************/
 ISR(TIMER1_COMPA_vect){
 
@@ -310,28 +310,28 @@ void OnBeep(uint8_t t_ms){
 	TCNT3 = 0;
 	OCR3A = 16*t_ms;
 	if((ETIFR & (1<<OCF3A))!=0) 
-		ETIFR|=(1<<OCF3A);   //сбросил на всякий случай флаг прерывания
+		ETIFR|=(1<<OCF3A);   //СЃР±СЂРѕСЃРёР» РЅР° РІСЃСЏРєРёР№ СЃР»СѓС‡Р°Р№ С„Р»Р°Рі РїСЂРµСЂС‹РІР°РЅРёСЏ
 	ETIMSK = _BV(OCIE3A);
 	TCCR3B = _BV(WGM32)|_BV(CS32)|_BV(CS30);
 	Sound_on();
 }
 /*******************************************************************************
- * Timer3 ISR (Выключение пищалки) 
+ * Timer3 ISR (Р’С‹РєР»СЋС‡РµРЅРёРµ РїРёС‰Р°Р»РєРё) 
  *******************************************************************************/
 ISR(TIMER3_COMPA_vect){	
 	Sound_off();
-	//запретил прерывания от таймера  
+	//Р·Р°РїСЂРµС‚РёР» РїСЂРµСЂС‹РІР°РЅРёСЏ РѕС‚ С‚Р°Р№РјРµСЂР°  
 	ETIMSK &=~_BV(OCIE3A);
 }
 
-//читаем кнопки
+//С‡РёС‚Р°РµРј РєРЅРѕРїРєРё
 uint8_t keypad_read(void)
 {
 	uint8_t key_press = 0;
 	static uint8_t key_rising = 0;
-	static uint8_t press_count[2] = {0, 0}; //считаем сколько удерживают кнопку
+	static uint8_t press_count[2] = {0, 0}; //СЃС‡РёС‚Р°РµРј СЃРєРѕР»СЊРєРѕ СѓРґРµСЂР¶РёРІР°СЋС‚ РєРЅРѕРїРєСѓ
 	
-	if ((!(PINA&_BV(5)))&&(!(key_rising&_BV(2)) || (press_count[0] > 20))) { //кнопка вниз
+	if ((!(PINA&_BV(5)))&&(!(key_rising&_BV(2)) || (press_count[0] > 20))) { //РєРЅРѕРїРєР° РІРЅРёР·
 		PORTE |= (1<<PE4);
 		moveMenu(Lower);
 		key_press = 2; 
@@ -345,7 +345,7 @@ uint8_t keypad_read(void)
 		press_count[0]++;
 	}
 	
-	if ((!(PINA&_BV(6)))&&(!(key_rising&_BV(3)) || (press_count[1] > 20))) { //кнопка вверх
+	if ((!(PINA&_BV(6)))&&(!(key_rising&_BV(3)) || (press_count[1] > 20))) { //РєРЅРѕРїРєР° РІРІРµСЂС…
 		PORTE &= ~(1<<PE4);
 		moveMenu(Up);
 		key_press = 3; 
@@ -371,7 +371,7 @@ uint8_t keypad_read(void)
 	else
 		boost_count = 1;
 	
-	if ((!(PINA&_BV(3)))&&(!(key_rising&_BV(1)))) { //кнопка меню
+	if ((!(PINA&_BV(3)))&&(!(key_rising&_BV(1)))) { //РєРЅРѕРїРєР° РјРµРЅСЋ
 		menuButtton();
 		key_press = 4; 
 		key_rising|=_BV(1); 
@@ -379,7 +379,7 @@ uint8_t keypad_read(void)
 	else if(PINA&_BV(3)) 
 		key_rising&=~_BV(1);
 	
-	if ((!(PINA&_BV(4)))&&(!(key_rising&_BV(4)))) { //кнопка Ok
+	if ((!(PINA&_BV(4)))&&(!(key_rising&_BV(4)))) { //РєРЅРѕРїРєР° Ok
 		menuOk();
 		key_press = 1; 
 		key_rising|=_BV(4); 
@@ -392,7 +392,7 @@ uint8_t keypad_read(void)
 	return key_press;
 }
 
-/* Функция калибровки вакуума и атмосферы */
+/* Р¤СѓРЅРєС†РёСЏ РєР°Р»РёР±СЂРѕРІРєРё РІР°РєСѓСѓРјР° Рё Р°С‚РјРѕСЃС„РµСЂС‹ */
 typedef enum {Vacuum, Atmosphere} pressure_type;
 bool calibration(pressure_type type, int sensor_id){
 	static char buf[16];
@@ -406,17 +406,17 @@ bool calibration(pressure_type type, int sensor_id){
 			}
 			custom_delay(10);
 			if (sensor(sensor_id, Pa) < 0){
-				sprintf(buf, "Датчик Д%d", sensor_id + 1);
-				displayQueue(buf, "не подключен", 3000);
+				sprintf(buf, "Р”Р°С‚С‡РёРє Р”%d", sensor_id + 1);
+				displayQueue(buf, "РЅРµ РїРѕРґРєР»СЋС‡РµРЅ", 3000);
 				return false;
 			}
 			else if (sensor(sensor_id, Pa) < 35000){
-				sprintf(buf, "Д%d неисправен", sensor_id + 1);
-				displayQueue("В камере вакуум/", buf, 3000);
+				sprintf(buf, "Р”%d РЅРµРёСЃРїСЂР°РІРµРЅ", sensor_id + 1);
+				displayQueue("Р’ РєР°РјРµСЂРµ РІР°РєСѓСѓРј/", buf, 3000);
 				return false;
 			}
-			sprintf(buf, "калибровка Д%d...", sensor_id + 1);
-			displayQueue("Подождите, идет", buf, 60000);
+			sprintf(buf, "РєР°Р»РёР±СЂРѕРІРєР° Р”%d...", sensor_id + 1);
+			displayQueue("РџРѕРґРѕР¶РґРёС‚Рµ, РёРґРµС‚", buf, 60000);
 			uint16_t temp_bias = bridge_offset[sensor_id];
 			size_t scale_size = sizeof(ADC_scale)/sizeof(*ADC_scale);
 			int count = 4095;
@@ -449,8 +449,8 @@ bool calibration(pressure_type type, int sensor_id){
 	return false;
 }
 
-/************ Функции для меню и подменю **************/
-void atmosphCalibration(button but){ //калибровка атмосферы
+/************ Р¤СѓРЅРєС†РёРё РґР»СЏ РјРµРЅСЋ Рё РїРѕРґРјРµРЅСЋ **************/
+void atmosphCalibration(button but){ //РєР°Р»РёР±СЂРѕРІРєР° Р°С‚РјРѕСЃС„РµСЂС‹
 	static uint8_t curr_sensor = 0;
 	static char buf[16];
 
@@ -462,13 +462,13 @@ void atmosphCalibration(button but){ //калибровка атмосферы
 			break;
 		case Ok:{
 			isCalibration = true;
-			sprintf(buf, "Калибровка Д%d", curr_sensor+1);
+			sprintf(buf, "РљР°Р»РёР±СЂРѕРІРєР° Р”%d", curr_sensor+1);
 			if (calibration(Atmosphere, curr_sensor)){
-				displayQueue(buf, "прошла успешно!", 5000);
+				displayQueue(buf, "РїСЂРѕС€Р»Р° СѓСЃРїРµС€РЅРѕ!", 5000);
 				eeprom_write_word(&mem_bridge_offset[curr_sensor], bridge_offset[curr_sensor]);
 			}
 			else{
-				displayQueue(buf, "не удалась!", 5000);
+				displayQueue(buf, "РЅРµ СѓРґР°Р»Р°СЃСЊ!", 5000);
 			}
 			isCalibration = false;
 			break;
@@ -482,7 +482,7 @@ void atmosphCalibration(button but){ //калибровка атмосферы
 			break;
 	}
 }
-void vacuumCalibration(button but){ //калибровка вакуума
+void vacuumCalibration(button but){ //РєР°Р»РёР±СЂРѕРІРєР° РІР°РєСѓСѓРјР°
 	static uint8_t curr_sensor = 0;
 	char buf[16];
 	switch(but){
@@ -503,7 +503,7 @@ void vacuumCalibration(button but){ //калибровка вакуума
 			break;
 	}
 }
-void addressSelection(button but){ // выбор адреса RS485
+void addressSelection(button but){ // РІС‹Р±РѕСЂ Р°РґСЂРµСЃР° RS485
 	static uint8_t temp_address = 1;
 	static uint8_t max = 32;
 	static uint8_t min = 1;
@@ -534,8 +534,8 @@ void addressSelection(button but){ // выбор адреса RS485
 			break;
 	}
 }
-void unitSelection(button but){ // выбор единиц измерения
-	static char* unit_names[3] = {"Па", "мбар", "Торр"};
+void unitSelection(button but){ // РІС‹Р±РѕСЂ РµРґРёРЅРёС† РёР·РјРµСЂРµРЅРёСЏ
+	static char* unit_names[3] = {"РџР°", "РјР±Р°СЂ", "РўРѕСЂСЂ"};
 	static uint8_t temp_unit = 0;
 	switch(but){
 		case Up:
@@ -561,8 +561,8 @@ void unitSelection(button but){ // выбор единиц измерения
 			break;
 	}
 }
-void hardReset(button but){ //сброс до заводских настроек
-	static char* confirm_text[2] = {"Нет", "Да"};
+void hardReset(button but){ //СЃР±СЂРѕСЃ РґРѕ Р·Р°РІРѕРґСЃРєРёС… РЅР°СЃС‚СЂРѕРµРє
+	static char* confirm_text[2] = {"РќРµС‚", "Р”Р°"};
 	static bool confirm = false;
 	switch(but){
 		case Up: case Lower:
@@ -587,7 +587,7 @@ void hardReset(button but){ //сброс до заводских настроек
 				rs_address = 1;
 				eeprom_write_byte(&mem_rs_address, rs_address);
 				
-				displayQueue("Сброс", "выполнен!", 5000);
+				displayQueue("РЎР±СЂРѕСЃ", "РІС‹РїРѕР»РЅРµРЅ!", 5000);
 			}
 			break;
 		}
@@ -599,43 +599,43 @@ void hardReset(button but){ //сброс до заводских настроек
 			break;
 	}
 }
-void choose_analog_0(button but){ //выбрали Д1 аналоговый
+void choose_analog_0(button but){ //РІС‹Р±СЂР°Р»Рё Р”1 Р°РЅР°Р»РѕРіРѕРІС‹Р№
 	switch(but){
 		case Ok:{
 			currentType[0] = analogSensor;
 			eeprom_write_byte(&mem_currentType[0], currentType[0]);
 			setSensorType(0, currentType[0]);
-			displayQueue("Выбран аналог.", "датчик Д1!", 5000);
+			displayQueue("Р’С‹Р±СЂР°РЅ Р°РЅР°Р»РѕРі.", "РґР°С‚С‡РёРє Р”1!", 5000);
 			break;
 		}
 		default:
 		break;
 	}
 }
-void choose_analog_1(button but){ //выбрали Д2 аналоговый
+void choose_analog_1(button but){ //РІС‹Р±СЂР°Р»Рё Р”2 Р°РЅР°Р»РѕРіРѕРІС‹Р№
 	switch(but){
 		case Ok:{
 			currentType[1] = analogSensor;
 			eeprom_write_byte(&mem_currentType[1], currentType[1]);
 			setSensorType(1, currentType[1]);
-			displayQueue("Выбран аналог.", "датчик Д2!", 5000);
+			displayQueue("Р’С‹Р±СЂР°РЅ Р°РЅР°Р»РѕРі.", "РґР°С‚С‡РёРє Р”2!", 5000);
 			break;
 		}
 		default:
 		break;
 	}
 }
-void choose_thyracont_0(button but){ //выбрали Д1 цифровой
+void choose_thyracont_0(button but){ //РІС‹Р±СЂР°Р»Рё Р”1 С†РёС„СЂРѕРІРѕР№
 	switch(but){
 		case Ok:{
 			if (currentType[1] != digitalSensor){
 				currentType[0] = digitalSensor;
 				eeprom_write_byte(&mem_currentType[0], currentType[0]);
 				setSensorType(0, currentType[0]);
-				displayQueue("Выбран цифровой", "датчик Д1!", 5000);
+				displayQueue("Р’С‹Р±СЂР°РЅ С†РёС„СЂРѕРІРѕР№", "РґР°С‚С‡РёРє Р”1!", 5000);
 			}
 			else{
-				displayQueue("Ошибка! Уже", "выбран Д2!", 5000);
+				displayQueue("РћС€РёР±РєР°! РЈР¶Рµ", "РІС‹Р±СЂР°РЅ Р”2!", 5000);
 			}
 			break;
 		}
@@ -643,17 +643,17 @@ void choose_thyracont_0(button but){ //выбрали Д1 цифровой
 		break;
 	}
 }
-void choose_thyracont_1(button but){ //выбрали Д2 цифровой
+void choose_thyracont_1(button but){ //РІС‹Р±СЂР°Р»Рё Р”2 С†РёС„СЂРѕРІРѕР№
 	switch(but){
 		case Ok:{
 			if (currentType[0] != digitalSensor){
 				currentType[1] = digitalSensor;
 				eeprom_write_byte(&mem_currentType[1], currentType[1]);
 				setSensorType(1, currentType[1]);
-				displayQueue("Выбран цифровой", "датчик Д2!", 5000);
+				displayQueue("Р’С‹Р±СЂР°РЅ С†РёС„СЂРѕРІРѕР№", "РґР°С‚С‡РёРє Р”2!", 5000);
 			}
 			else{
-				displayQueue("Ошибка! Уже", "выбран Д1!", 5000);
+				displayQueue("РћС€РёР±РєР°! РЈР¶Рµ", "РІС‹Р±СЂР°РЅ Р”1!", 5000);
 			}
 			break;
 		}
@@ -661,7 +661,7 @@ void choose_thyracont_1(button but){ //выбрали Д2 цифровой
 		break;
 	}
 }
-void choose_log_0(button but){ //выбрали Д1 логарифмический
+void choose_log_0(button but){ //РІС‹Р±СЂР°Р»Рё Р”1 Р»РѕРіР°СЂРёС„РјРёС‡РµСЃРєРёР№
 	switch(but){
 		case Ok:{
 			currentType[0] = sensorFormula;
@@ -673,7 +673,7 @@ void choose_log_0(button but){ //выбрали Д1 логарифмический
 		break;
 	}
 }
-void choose_log_1(button but){ //выбрали Д2 логарифмический
+void choose_log_1(button but){ //РІС‹Р±СЂР°Р»Рё Р”2 Р»РѕРіР°СЂРёС„РјРёС‡РµСЃРєРёР№
 	switch(but){
 		case Ok:{
 			currentType[1] = sensorFormula;
@@ -690,7 +690,7 @@ float map(float x, float in_min, float in_max, float out_min, float out_max){
 	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
-/*** Загрузка данных из памяти ***/
+/*** Р—Р°РіСЂСѓР·РєР° РґР°РЅРЅС‹С… РёР· РїР°РјСЏС‚Рё ***/
 void Data_Load(){
 	currentUnit = eeprom_read_byte(&mem_currentUnit);
 	unitLedOn(currentUnit);
@@ -710,38 +710,38 @@ int main(void)
 	Global_Init();
 	sei();
 	
-	displayQueue("Измеритель", "вакуума ВК-10", 1500);
-	displayQueue("микрокод", "вер. 2.0", 1500);
+	displayQueue("РР·РјРµСЂРёС‚РµР»СЊ", "РІР°РєСѓСѓРјР° Р’Рљ-10", 1500);
+	displayQueue("РјРёРєСЂРѕРєРѕРґ", "РІРµСЂ. 2.0", 1500);
 	
-	/*** Строим меню ***/
+	/*** РЎС‚СЂРѕРёРј РјРµРЅСЋ ***/
 	createMenusItem("P1 = ---", "P2 = ---");
 
-	createMenusItem("Единицы", "измерения");
-	createSubItem(1, "Выбор ед. изм.:", "");
+	createMenusItem("Р•РґРёРЅРёС†С‹", "РёР·РјРµСЂРµРЅРёСЏ");
+	createSubItem(1, "Р’С‹Р±РѕСЂ РµРґ. РёР·Рј.:", "");
 	setSubItemAsChangeable(1, 0);
 	setSubItemAction(1, 0, unitSelection);
 
-	createMenusItem("Калибровка", "атмосферы");
-	createSubItem(2, "Выберете датчик:", "");
+	createMenusItem("РљР°Р»РёР±СЂРѕРІРєР°", "Р°С‚РјРѕСЃС„РµСЂС‹");
+	createSubItem(2, "Р’С‹Р±РµСЂРµС‚Рµ РґР°С‚С‡РёРє:", "");
 	setSubItemAsChangeable(2, 0);
 	setSubItemAction(2, 0, atmosphCalibration);
 
-	createMenusItem("Калибровка", "вакуума");
-	createSubItem(3, "Выберете датчик:", "");
+	createMenusItem("РљР°Р»РёР±СЂРѕРІРєР°", "РІР°РєСѓСѓРјР°");
+	createSubItem(3, "Р’С‹Р±РµСЂРµС‚Рµ РґР°С‚С‡РёРє:", "");
 	setSubItemAsChangeable(3, 0);
 	setSubItemAction(3, 0, vacuumCalibration);
 
-	createMenusItem("Адрес в сети", "RS485");
-	createSubItem(4, "Введите адрес:", "");
+	createMenusItem("РђРґСЂРµСЃ РІ СЃРµС‚Рё", "RS485");
+	createSubItem(4, "Р’РІРµРґРёС‚Рµ Р°РґСЂРµСЃ:", "");
 	setSubItemAsChangeable(4, 0);
 	setSubItemAction(4, 0, addressSelection);
 
-	createMenusItem("Выбор типа", "датчика Д1");
-	createSubItem(5, "Аналоговый", "датчик");
+	createMenusItem("Р’С‹Р±РѕСЂ С‚РёРїР°", "РґР°С‚С‡РёРєР° Р”1");
+	createSubItem(5, "РђРЅР°Р»РѕРіРѕРІС‹Р№", "РґР°С‚С‡РёРє");
 	setSubItemAction(5, 0, choose_analog_0);
-	createSubItem(5, "Цифровой датчик", "Teracont");
+	createSubItem(5, "Р¦РёС„СЂРѕРІРѕР№ РґР°С‚С‡РёРє", "Teracont");
 	setSubItemAction(5, 1, choose_thyracont_0);
-	createSubItem(5, "Расчет давления", "по формуле");
+	createSubItem(5, "Р Р°СЃС‡РµС‚ РґР°РІР»РµРЅРёСЏ", "РїРѕ С„РѕСЂРјСѓР»Рµ");
 	setSubItemAction(5, 2, choose_log_0);
 	createSub2Item(5, 2, "[a]*log( b )+ c", "");
 	setSub2ItemAsChangeable(5, 2, 0);
@@ -750,12 +750,12 @@ int main(void)
 	createSub2Item(5, 2, " a *log( b )+[c]", "");
 	setSub2ItemAsChangeable(5, 2, 2);
 	
-	createMenusItem("Выбор типа", "датчика Д2");
-	createSubItem(6, "Аналоговый", "датчик");
+	createMenusItem("Р’С‹Р±РѕСЂ С‚РёРїР°", "РґР°С‚С‡РёРєР° Р”2");
+	createSubItem(6, "РђРЅР°Р»РѕРіРѕРІС‹Р№", "РґР°С‚С‡РёРє");
 	setSubItemAction(6, 0, choose_analog_1);
-	createSubItem(6, "Цифровой датчик", "Teracont");
+	createSubItem(6, "Р¦РёС„СЂРѕРІРѕР№ РґР°С‚С‡РёРє", "Teracont");
 	setSubItemAction(6, 1, choose_thyracont_1);
-	createSubItem(6, "Расчет давления", "по формуле");
+	createSubItem(6, "Р Р°СЃС‡РµС‚ РґР°РІР»РµРЅРёСЏ", "РїРѕ С„РѕСЂРјСѓР»Рµ");
 	setSubItemAction(6, 2, choose_log_1);
 	createSub2Item(6, 2, "[a]*log( b )+ c", "");
 	setSub2ItemAsChangeable(6, 2, 0);
@@ -764,35 +764,35 @@ int main(void)
 	createSub2Item(6, 2, " a *log( b )+[c]", "");
 	setSub2ItemAsChangeable(6, 2, 2);
 	
-	createMenusItem("Режим работы", "реле Р1 и Р2");
-	createSubItem(7, "Работа реле", "Р1 и Р2 от Д1");
-	createSub2Item(7, 0, "Введите Д1 [Па]:", "");
-	createSub2Item(7, 0, "Введите Д2 [Па]:", "");
+	createMenusItem("Р РµР¶РёРј СЂР°Р±РѕС‚С‹", "СЂРµР»Рµ Р 1 Рё Р 2");
+	createSubItem(7, "Р Р°Р±РѕС‚Р° СЂРµР»Рµ", "Р 1 Рё Р 2 РѕС‚ Р”1");
+	createSub2Item(7, 0, "Р’РІРµРґРёС‚Рµ Р”1 [РџР°]:", "");
+	createSub2Item(7, 0, "Р’РІРµРґРёС‚Рµ Р”2 [РџР°]:", "");
 	setSub2ItemAsChangeable(7, 0, 0);
 	setSub2ItemAsChangeable(7, 0, 1);
-	createSubItem(7, "Работа Р1 от Д1,", "Р2 от Д2");
-	createSub2Item(7, 1, "Введите Д1 [Па]:", "");
-	createSub2Item(7, 1, "Введите Д2 [Па]:", "");
+	createSubItem(7, "Р Р°Р±РѕС‚Р° Р 1 РѕС‚ Р”1,", "Р 2 РѕС‚ Р”2");
+	createSub2Item(7, 1, "Р’РІРµРґРёС‚Рµ Р”1 [РџР°]:", "");
+	createSub2Item(7, 1, "Р’РІРµРґРёС‚Рµ Р”2 [РџР°]:", "");
 	setSub2ItemAsChangeable(7, 1, 0);
 	setSub2ItemAsChangeable(7, 1, 1);
 	
-	createMenusItem("Заводские", "установки");
-	createSubItem(8, "Выполнить сброс?", "");
+	createMenusItem("Р—Р°РІРѕРґСЃРєРёРµ", "СѓСЃС‚Р°РЅРѕРІРєРё");
+	createSubItem(8, "Р’С‹РїРѕР»РЅРёС‚СЊ СЃР±СЂРѕСЃ?", "");
 	setSubItemAsChangeable(8, 0);
 	setSubItemAction(8, 0, hardReset);
 
-	/*** Датчики ***/
+	/*** Р”Р°С‚С‡РёРєРё ***/
 	addSensors(2);
 	setCalcFunc(0, analog_read);
 	setCalcFunc(1, thyracont_read);
 	
-	/*** Загрузка данных ***/
+	/*** Р—Р°РіСЂСѓР·РєР° РґР°РЅРЅС‹С… ***/
 	Data_Load();
 	
     while (true) 
     {
 		keypad_read();
-		_delay_ms(30); //защита от дребезга контактов
+		_delay_ms(30); //Р·Р°С‰РёС‚Р° РѕС‚ РґСЂРµР±РµР·РіР° РєРѕРЅС‚Р°РєС‚РѕРІ
     }
 	clearMenus();
 	deleteSensors();
